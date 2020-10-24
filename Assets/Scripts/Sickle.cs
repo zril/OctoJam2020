@@ -6,7 +6,9 @@ public class Sickle : MonoBehaviour
 {
     public float Direction;
 
-    private float speed = 5;
+    private float speed = 20;
+
+    private bool stick = false;
 
     // Start is called before the first frame update
     void Start()
@@ -17,7 +19,25 @@ public class Sickle : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var dist = speed * Time.deltaTime;
-        transform.position += new Vector3(Mathf.Cos(Mathf.Deg2Rad * Direction) * dist, Mathf.Sin(Mathf.Deg2Rad * Direction) * dist, 0);
+        if (!stick)
+        {
+            var dist = speed * Time.deltaTime;
+            transform.position += new Vector3(Mathf.Cos(Mathf.Deg2Rad * Direction) * dist, Mathf.Sin(Mathf.Deg2Rad * Direction) * dist, 0);
+        }
+        
+    }
+
+    public void Stick(GameObject target)
+    {
+        if (!stick)
+        {
+            stick = true;
+            transform.parent = target.transform;
+        }
+    }
+
+    public bool GetStick()
+    {
+        return stick;
     }
 }

@@ -1,55 +1,81 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Main : MonoBehaviour
 {
 
-    private float levelSpeed = 0.5f;
+    private float levelSpeed = 1f;
     private int levelWidth = 18;
     private int leftWall = 3;
     private int rightWall = 3;
 
 
     private GameObject[] clouds;
+    private GameObject[] deathclouds;
     private GameObject mainCamera;
     private GameObject level;
 
-    private float spawnTimer;
     private int lineCounter;
 
     private int[,] levelTiles;
     private List<LevelObject> objectList;
-    private int totalProbability;
+    private int objectTotalProbability;
     private List<GameObject> objectPrefabs;
     private GameObject wallPrefab;
+    private List<LevelEnemy> enemyList;
+    private List<GameObject> enemyPrefabs;
+    private int enemyTotalProbability;
+
+    private GameObject canvas;
+    private GameObject player;
+
+
     // Start is called before the first frame update
     void Start()
     {
         clouds = GameObject.FindGameObjectsWithTag("Cloud");
+        deathclouds = GameObject.FindGameObjectsWithTag("DeathCloud");
         mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
         level = GameObject.FindGameObjectWithTag("Level");
+        canvas = GameObject.FindGameObjectWithTag("Canvas");
+        player = GameObject.FindGameObjectWithTag("Player");
 
-        spawnTimer = 1;
         levelTiles = new int[levelWidth, 10000];
+        for(int i = 0; i < levelWidth; i++)
+        {
+            levelTiles[i, 0] = -1;
+        }
 
         objectList = new List<LevelObject>();
         objectList.Add(new LevelObject(0, "Nothing", 0, 0, 18));
         objectList.Add(new LevelObject(1, "Platform", 4, 1, 4));
         objectList.Add(new LevelObject(2, "SmallPlatform", 2, 1, 5));
         objectList.Add(new LevelObject(3, "BoxPlatform", 2, 2, 1));
-        totalProbability = 0;
+        objectTotalProbability = 0;
         objectPrefabs = new List<GameObject>();
         foreach (LevelObject obj in objectList)
         {
-            totalProbability += obj.Probability;
+            objectTotalProbability += obj.Probability;
             objectPrefabs.Add(Resources.Load<GameObject>("Prefabs/" + obj.Prefab));
         }
         wallPrefab = Resources.Load<GameObject>("Prefabs/Wall");
 
+        enemyList = new List<LevelEnemy>();
+        enemyList.Add(new LevelEnemy(0, "Nothing", 15));
+        enemyList.Add(new LevelEnemy(1, "Enemy1", 1));
+        enemyTotalProbability = 0;
+        enemyPrefabs = new List<GameObject>();
+        foreach (LevelEnemy obj in enemyList)
+        {
+            enemyTotalProbability += obj.Probability;
+            enemyPrefabs.Add(Resources.Load<GameObject>("Prefabs/" + obj.Prefab));
+        }
+
 
         lineCounter = 0;
-        for (int i = 0; i < 15; i++)
+        for (int i = 0; i < 50; i++)
         {
             SpawnLine(lineCounter);
             lineCounter++;
@@ -60,7 +86,12 @@ public class Main : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        foreach(GameObject cloud in clouds)
+        foreach (GameObject cloud in clouds)
+        {
+            cloud.transform.position += new Vector3(0, levelSpeed * Time.deltaTime, 0);
+        }
+
+        foreach (GameObject cloud in deathclouds)
         {
             cloud.transform.position += new Vector3(0, levelSpeed * Time.deltaTime, 0);
         }
@@ -68,13 +99,13 @@ public class Main : MonoBehaviour
         mainCamera.transform.position += new Vector3(0, levelSpeed * Time.deltaTime, 0);
 
 
-        spawnTimer -= Time.deltaTime * levelSpeed;
-        if (spawnTimer < 0)
+        while (lineCounter < mainCamera.transform.position.y + 50)
         {
-            spawnTimer += 1;
             SpawnLine(lineCounter);
             lineCounter++;
         }
+
+        UpdateUI();
     }
 
     private void SpawnLine(int line)
@@ -93,7 +124,7 @@ public class Main : MonoBehaviour
 
             if (levelTiles[leftWall + x, line] != -1)
             {
-                int roll = Random.Range(0, totalProbability);
+                int roll = Random.Range(0, objectTotalProbability);
                 int index = -1;
                 while (roll >= 0)
                 {
@@ -104,7 +135,14 @@ public class Main : MonoBehaviour
                 var obj = objectList[index];
                 SpawnObject(line, leftWall + x, obj);
             }
+
+            if (line > 5)
+            {
+                RollEnemy(line, x);
+            }
         }
+
+
     }
 
     private bool SpawnObject(int line, int xpos, LevelObject obj)
@@ -195,5 +233,38 @@ public class Main : MonoBehaviour
         if (rightWall > 6) rightWall = 6;
         var wall2 = GameObject.Instantiate(wallPrefab, level.transform);
         wall2.transform.position = new Vector3(((float)levelWidth / 2) + 1 - rightWall, line + 5f / 2f, 0);
+    }
+
+    private void RollEnemy(int line, int x)
+    {
+        int roll = Random.Range(0, enemyTotalProbability);
+        int index = -1;
+        while (roll >= 0)
+        {
+            index++;
+            roll -= enemyList[index].Probability;
+        }
+
+        var obj = enemyList[index];
+        SpawnEnemy(line, leftWall + x, obj);
+    }
+
+    private void SpawnEnemy(int line, int xpos, LevelEnemy enemy)
+    {
+        if (enemy.Prefab != "Nothing")
+        {
+            var enemyRoot = transform.Find("Enemy");
+            var o = GameObject.Instantiate(enemyPrefabs[enemy.Id], enemyRoot.transform);
+            o.transform.position = new Vector3(0.5f - ((float)levelWidth / 2) + xpos, 0.5f + line + 1f, 0);
+        }
+    }
+
+    private void UpdateUI()
+    {
+        var hp = canvas.transform.Find("HP");
+        hp.GetComponent<Text>().text = string.Format("HP {0}/100", player.GetComponent<Player>().GetHP());
+
+        var gas = canvas.transform.Find("Gas");
+        gas.GetComponent<Text>().text = string.Format("Gas {0}/20", player.GetComponent<Player>().GetGas());
     }
 }
