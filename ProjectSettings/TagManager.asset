@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - Floor
+  - Level
+  - Cloud
+  - Hammer
+  - Sickle
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -16,9 +21,9 @@ TagManager:
   - 
   - Floor
   - Player
-  - 
-  - 
-  - 
+  - Enemy
+  - Attack
+  - Cloud
   - 
   - 
   - 
