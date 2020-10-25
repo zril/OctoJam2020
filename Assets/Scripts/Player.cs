@@ -1,17 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
     private float speed = 2;
     private float basejumpspeed = 6;
-    private float holdjumpfactor = 4.5f;
+    private float holdjumpfactor = 4f;
 
     private float hp = 100;
     private float maxHp = 100;
-    private float gas = 20;
-    private int maxGas = 20;
+    private float gas = 10;
+    private int maxGas = 10;
     private float toxicDps = 2.5f;
     private float gasPerSec = 1;
 
@@ -49,6 +50,12 @@ public class Player : MonoBehaviour
     private GameObject gun;
     private GameObject hammer;
 
+    public AudioClip shootClip;
+    public AudioClip jumpClip;
+    public AudioClip hammerClip;
+    public AudioClip looseClip;
+    private AudioSource audioSource;
+
 
     // Start is called before the first frame update
     void Start()
@@ -57,6 +64,8 @@ public class Player : MonoBehaviour
         graplePrefab = Resources.Load<GameObject>("Prefabs/Graple");
         gun = transform.Find("Gun").gameObject;
         hammer = transform.Find("Hammer").gameObject;
+        audioSource = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioSource>();
+
 
         grapleObj = new List<GameObject>();
     }
@@ -145,6 +154,10 @@ public class Player : MonoBehaviour
             damageTimer -= Time.deltaTime;
             right = false;
             left = false;
+            GetComponent<SpriteRenderer>().color = Color.red;
+        } else
+        {
+            GetComponent<SpriteRenderer>().color = Color.white;
         }
 
         // movement
@@ -169,6 +182,7 @@ public class Player : MonoBehaviour
         {
             jump = true;
             jumpTimer = jumpTime;
+            audioSource.PlayOneShot(jumpClip);
         }
 
         //todo buffer jump
@@ -182,16 +196,24 @@ public class Player : MonoBehaviour
         {
             gun.GetComponent<SpriteRenderer>().flipX = false;
             gun.transform.rotation = Quaternion.Euler(0, 0, angle);
+            gun.transform.Find("Sickle").localPosition = new Vector3(0.642f, 0.05f, 0);
+            gun.transform.Find("Sickle").localRotation = Quaternion.Euler(0, 0, 0);
         }
         if (mousepos.x - transform.position.x < 0 && grapleTimer <= 0)
         {
             gun.GetComponent<SpriteRenderer>().flipX = true;
             gun.transform.rotation = Quaternion.Euler(0, 0, angle + 180);
+            gun.transform.Find("Sickle").localPosition = new Vector3(-0.642f, -0.05f, 0);
+            gun.transform.Find("Sickle").localRotation = Quaternion.Euler(0, 0, 180);
         }
 
         if (sickleCooldownTimer > 0)
         {
             sickleCooldownTimer -= Time.deltaTime;
+            gun.transform.Find("Sickle").gameObject.SetActive(false);
+        } else
+        {
+            gun.transform.Find("Sickle").gameObject.SetActive(true);
         }
 
         if (Input.GetButtonDown("Sickle") && sickleCooldownTimer <= 0 && damageTimer <= 0 && gas > 0 && grapleTimer <= 0)
@@ -203,6 +225,7 @@ public class Player : MonoBehaviour
             sickleCooldownTimer = sickleCooldown;
             gas--;
             currentSickle = sickle;
+            audioSource.PlayOneShot(shootClip);
         }
         if (Input.GetButtonUp("Sickle"))
         {
@@ -259,6 +282,7 @@ public class Player : MonoBehaviour
             hammerTimer = hammerCooldown;
             transform.Find("HammerHitbox").gameObject.SetActive(true);
             hammer.gameObject.SetActive(true);
+            audioSource.PlayOneShot(hammerClip);
         }
 
         if (hammerTimer > 0)
@@ -272,8 +296,6 @@ public class Player : MonoBehaviour
             {
                 hammer.transform.rotation = Quaternion.Euler(0, 0, -50 + 100 * time);
             }
-
-            Debug.Log(time);
 
             if (hammerTimer < hammerCooldown - hammerDuration)
             {
@@ -369,7 +391,7 @@ public class Player : MonoBehaviour
 
         if (collision.gameObject.CompareTag("BonusGas"))
         {
-            gas += 2;
+            gas += 1;
             if (gas > maxGas) gas = maxGas;
             Destroy(collision.gameObject, 0.15f);
         }
@@ -389,6 +411,8 @@ public class Player : MonoBehaviour
         hp -= damage;
         if (hp < 0)
         {
+            audioSource.Stop();
+            audioSource.PlayOneShot(looseClip);
             Destroy(gameObject);
         }
     }

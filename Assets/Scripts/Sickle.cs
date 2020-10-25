@@ -11,10 +11,13 @@ public class Sickle : MonoBehaviour
 
     private bool stick = false;
 
+    public AudioClip impactClip;
+    private AudioSource audioSource;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        audioSource = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -38,6 +41,7 @@ public class Sickle : MonoBehaviour
         {
             stick = true;
             transform.parent = target.transform;
+            audioSource.PlayOneShot(impactClip);
         }
     }
 

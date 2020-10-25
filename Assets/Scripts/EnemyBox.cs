@@ -6,10 +6,13 @@ public class EnemyBox : MonoBehaviour
 {
     private float hp = 5;
 
+    public AudioClip impactClip;
+    private AudioSource audioSource;
 
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioSource>();
     }
 
     private void FixedUpdate()
@@ -29,6 +32,7 @@ public class EnemyBox : MonoBehaviour
         if (collision.gameObject.CompareTag("Hammer"))
         {
             hp -= 5;
+            audioSource.PlayOneShot(impactClip);
         }
 
         if (collision.gameObject.CompareTag("Sickle"))

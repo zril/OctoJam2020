@@ -10,11 +10,15 @@ public class EnemyWalk : MonoBehaviour
 
     private float hp = 5;
 
+    public AudioClip impactClip;
+    private AudioSource audioSource;
 
     // Start is called before the first frame update
     void Start()
     {
         if (Random.value > 0.5f) right = !right;
+
+        audioSource = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioSource>();
     }
 
     private void FixedUpdate()
@@ -53,6 +57,7 @@ public class EnemyWalk : MonoBehaviour
         if (collision.gameObject.CompareTag("Hammer"))
         {
             hp -= 5;
+            audioSource.PlayOneShot(impactClip);
         }
 
         if (collision.gameObject.CompareTag("Sickle"))
@@ -65,7 +70,7 @@ public class EnemyWalk : MonoBehaviour
         {
             Destroy(gameObject);
 
-            if (Random.value > 0.8)
+            if (Random.value > 0.85)
             {
                 var bonus = Instantiate(Resources.Load<GameObject>("Prefabs/BonusHP"));
                 bonus.transform.position = new Vector3(transform.position.x, transform.position.y);

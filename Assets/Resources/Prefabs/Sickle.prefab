@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 129790882996328943}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -98,6 +98,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Direction: 0
+  impactClip: {fileID: 8300000, guid: 76b225dfcf9b93a40a5b4b959239d539, type: 3}
 --- !u!58 &4247527772037161149
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -111,9 +112,9 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.03, y: 0}
   serializedVersion: 2
-  m_Radius: 0.08
+  m_Radius: 0.12
 --- !u!50 &8984204928447495759
 Rigidbody2D:
   serializedVersion: 4

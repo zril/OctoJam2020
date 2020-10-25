@@ -12,6 +12,8 @@ public class EnemyFly : MonoBehaviour
     private Vector3 startpos;
     private float timer;
 
+    public AudioClip impactClip;
+    private AudioSource audioSource;
 
     // Start is called before the first frame update
     void Start()
@@ -19,6 +21,8 @@ public class EnemyFly : MonoBehaviour
         timer = Random.value * 6;
         startpos = transform.position;
         transform.position += new Vector3(Random.value - 0.5f, Random.value - 0.5f);
+
+        audioSource = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioSource>();
     }
 
     private void FixedUpdate()
@@ -41,6 +45,7 @@ public class EnemyFly : MonoBehaviour
         if (collision.gameObject.CompareTag("Hammer"))
         {
             hp -= 5;
+            audioSource.PlayOneShot(impactClip);
         }
 
         if (collision.gameObject.CompareTag("Sickle"))
@@ -52,7 +57,7 @@ public class EnemyFly : MonoBehaviour
         {
             Destroy(gameObject);
 
-            if (Random.value > 0.8)
+            if (Random.value > 0.85)
             {
                 var bonus = Instantiate(Resources.Load<GameObject>("Prefabs/BonusHP"));
                 bonus.transform.position = new Vector3(transform.position.x, transform.position.y);

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainCamera : MonoBehaviour
 {
@@ -18,6 +19,11 @@ public class MainCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(0);
+        }
+
         if (player.transform.position.y - transform.position.y > distThreshold)
         {
             transform.position = new Vector3(transform.position.x, player.transform.position.y - distThreshold, transform.position.z);

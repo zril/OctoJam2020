@@ -49,8 +49,8 @@ public class Main : MonoBehaviour
         }
 
         objectList = new List<LevelObject>();
-        objectList.Add(new LevelObject(0, "Nothing", 0, 0, 18));
-        objectList.Add(new LevelObject(1, "Platform", 4, 1, 4));
+        objectList.Add(new LevelObject(0, "Nothing", 0, 0, 19));
+        objectList.Add(new LevelObject(1, "Platform", 4, 1, 3));
         objectList.Add(new LevelObject(2, "SmallPlatform", 2, 1, 5));
         objectList.Add(new LevelObject(3, "BoxPlatform", 2, 2, 1));
         objectTotalProbability = 0;
@@ -65,10 +65,10 @@ public class Main : MonoBehaviour
         enemyList = new List<LevelEnemy>();
         enemyList.Add(new LevelEnemy(0, "Nothing", 200));
         enemyList.Add(new LevelEnemy(1, "EnemyWalk", 5));
-        enemyList.Add(new LevelEnemy(2, "EnemyFly", 7));
+        enemyList.Add(new LevelEnemy(2, "EnemyFly", 12));
         enemyList.Add(new LevelEnemy(3, "EnemyBox", 1));
         enemyList.Add(new LevelEnemy(4, "BonusHP", 1));
-        enemyList.Add(new LevelEnemy(5, "BonusGas", 4));
+        enemyList.Add(new LevelEnemy(5, "BonusGas", 3));
         enemyTotalProbability = 0;
         enemyPrefabs = new List<GameObject>();
         foreach (LevelEnemy obj in enemyList)
@@ -110,43 +110,49 @@ public class Main : MonoBehaviour
         }
 
         UpdateUI();
+
+        // levelspeed
+        levelSpeed = 1 + Mathf.FloorToInt(player.transform.position.y / 10) * 0.1f;
+        if (levelSpeed > 2) levelSpeed = 2;
     }
 
     private void SpawnLine(int line)
     {
+        
         if (line % 5 == 0)
         {
             SpawnWall(line);
         }
 
-        int currentWidth = levelWidth - leftWall - rightWall;
-        int offset = Random.Range(leftWall, currentWidth);
-
-        for (int i = 0; i < currentWidth; i++)
+        if (line > 1)
         {
-            var x = (offset + i) % currentWidth;
+            int currentWidth = levelWidth - leftWall - rightWall;
+            int offset = Random.Range(leftWall, currentWidth);
 
-            if (levelTiles[leftWall + x, line] != -1)
+            for (int i = 0; i < currentWidth; i++)
             {
-                int roll = Random.Range(0, objectTotalProbability);
-                int index = -1;
-                while (roll >= 0)
+                var x = (offset + i) % currentWidth;
+
+                if (levelTiles[leftWall + x, line] != -1)
                 {
-                    index++;
-                    roll -= objectList[index].Probability;
+                    int roll = Random.Range(0, objectTotalProbability);
+                    int index = -1;
+                    while (roll >= 0)
+                    {
+                        index++;
+                        roll -= objectList[index].Probability;
+                    }
+
+                    var obj = objectList[index];
+                    SpawnObject(line, leftWall + x, obj);
                 }
 
-                var obj = objectList[index];
-                SpawnObject(line, leftWall + x, obj);
-            }
-
-            if (line > 10)
-            {
-                RollEnemy(line, x);
+                if (line > 10)
+                {
+                    RollEnemy(line, x);
+                }
             }
         }
-
-
     }
 
     private bool SpawnObject(int line, int xpos, LevelObject obj)
@@ -227,6 +233,12 @@ public class Main : MonoBehaviour
         if (leftWall > 6) leftWall = 6;
         var wall1 = GameObject.Instantiate(wallPrefab, level.transform);
         wall1.transform.position = new Vector3(-((float)levelWidth / 2) - 1 + leftWall, line + 5f / 2f, 0);
+        var wall1a = GameObject.Instantiate(wallPrefab, level.transform);
+        wall1a.transform.position = new Vector3(-((float)levelWidth / 2) - 1 + leftWall - 3, line + 5f / 2f, 0);
+        var wall1b = GameObject.Instantiate(wallPrefab, level.transform);
+        wall1b.transform.position = new Vector3(-((float)levelWidth / 2) - 1 + leftWall - 6, line + 5f / 2f, 0);
+        var wall1c = GameObject.Instantiate(wallPrefab, level.transform);
+        wall1c.transform.position = new Vector3(-((float)levelWidth / 2) - 1 + leftWall - 9, line + 5f / 2f, 0);
 
         int roll2;
         if (rightWall > 4) roll2 = Random.Range(0, 4) - 2;
@@ -237,6 +249,12 @@ public class Main : MonoBehaviour
         if (rightWall > 6) rightWall = 6;
         var wall2 = GameObject.Instantiate(wallPrefab, level.transform);
         wall2.transform.position = new Vector3(((float)levelWidth / 2) + 1 - rightWall, line + 5f / 2f, 0);
+        var wall2a = GameObject.Instantiate(wallPrefab, level.transform);
+        wall2a.transform.position = new Vector3(((float)levelWidth / 2) + 1 - rightWall + 3, line + 5f / 2f, 0);
+        var wall2b = GameObject.Instantiate(wallPrefab, level.transform);
+        wall2b.transform.position = new Vector3(((float)levelWidth / 2) + 1 - rightWall + 6, line + 5f / 2f, 0);
+        var wall2c = GameObject.Instantiate(wallPrefab, level.transform);
+        wall2c.transform.position = new Vector3(((float)levelWidth / 2) + 1 - rightWall + 9, line + 5f / 2f, 0);
     }
 
     private void RollEnemy(int line, int x)
@@ -273,7 +291,7 @@ public class Main : MonoBehaviour
         hp.GetComponent<Text>().text = string.Format("HP {0}/100", player.GetComponent<Player>().GetHP());
 
         var gas = canvas.transform.Find("Gas");
-        gas.GetComponent<Text>().text = string.Format("Gas {0}/20", player.GetComponent<Player>().GetGas());
+        gas.GetComponent<Text>().text = string.Format("Gas {0}/10", player.GetComponent<Player>().GetGas());
 
         var floor = canvas.transform.Find("Floor");
         floor.GetComponent<Text>().text = string.Format("Floor {0}", Mathf.FloorToInt(player.transform.position.y / 10));
