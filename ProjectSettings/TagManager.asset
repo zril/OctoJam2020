@@ -12,6 +12,9 @@ TagManager:
   - Enemy
   - Canvas
   - DeathCloud
+  - Box
+  - BonusHP
+  - BonusGas
   layers:
   - Default
   - TransparentFX
@@ -27,7 +30,7 @@ TagManager:
   - Attack
   - Cloud
   - PlayerHurtbox
-  - 
+  - Bonus
   - 
   - 
   - 

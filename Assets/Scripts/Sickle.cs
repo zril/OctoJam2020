@@ -7,6 +7,7 @@ public class Sickle : MonoBehaviour
     public float Direction;
 
     private float speed = 20;
+    private float rotSpeed = 5;
 
     private bool stick = false;
 
@@ -24,7 +25,11 @@ public class Sickle : MonoBehaviour
             var dist = speed * Time.deltaTime;
             transform.position += new Vector3(Mathf.Cos(Mathf.Deg2Rad * Direction) * dist, Mathf.Sin(Mathf.Deg2Rad * Direction) * dist, 0);
         }
-        
+
+        if (!stick)
+        {
+            transform.Rotate(new Vector3(0, 0, Time.deltaTime * rotSpeed * 360));
+        }
     }
 
     public void Stick(GameObject target)

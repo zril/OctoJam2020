@@ -2,48 +2,36 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyWalk : MonoBehaviour
+public class EnemyFly : MonoBehaviour
 {
-    private bool right;
-    private float speed = 0.2f;
+    private float speed = 30f;
 
 
-    private float hp = 5;
+    private float hp = 2;
+
+    private Vector3 startpos;
+    private float timer;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        if (Random.value > 0.5f) right = !right;
+        timer = Random.value * 6;
+        startpos = transform.position;
+        transform.position += new Vector3(Random.value - 0.5f, Random.value - 0.5f);
     }
 
     private void FixedUpdate()
     {
-        var rigidbody = GetComponent<Rigidbody2D>();
-        var vel = rigidbody.velocity;
-        if (right)
-        {
-            rigidbody.velocity = new Vector2(speed, vel.y);
-        } 
-        else
-        {
-            rigidbody.velocity = new Vector2(-speed, vel.y);
-        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        timer += Time.deltaTime;
+        var angle = timer * Mathf.Deg2Rad * speed;
+        transform.position = startpos + new Vector3(Mathf.Cos(angle) * 0.5f, Mathf.Sin(angle) * 0.5f);
 
-
-    }
-
-    private void OnCollisionEnter2D(Collision2D col)
-    {
-        if (col.gameObject.CompareTag("Floor") && col.GetContact(0).normal.y == 0)
-        {
-            right = !right;
-        }
     }
 
 
@@ -58,7 +46,6 @@ public class EnemyWalk : MonoBehaviour
         if (collision.gameObject.CompareTag("Sickle"))
         {
             hp -= 4;
-            collision.gameObject.GetComponent<Sickle>().Stick(gameObject);
         }
 
         if (hp <= 0)

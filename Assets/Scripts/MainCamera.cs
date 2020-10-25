@@ -20,13 +20,13 @@ public class MainCamera : MonoBehaviour
     {
         if (player.transform.position.y - transform.position.y > distThreshold)
         {
-            transform.position = new Vector3(player.transform.position.x, player.transform.position.y - distThreshold, transform.position.z);
+            transform.position = new Vector3(transform.position.x, player.transform.position.y - distThreshold, transform.position.z);
         } else if (player.transform.position.y - transform.position.y < -distThreshold)
         {
-            transform.position = new Vector3(player.transform.position.x, player.transform.position.y + distThreshold, transform.position.z);
+            transform.position = new Vector3(transform.position.x, player.transform.position.y + distThreshold, transform.position.z);
         } else
         {
-            transform.position = new Vector3(player.transform.position.x, transform.position.y, transform.position.z);
+            transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
         }
     }
 }

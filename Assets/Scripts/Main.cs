@@ -63,8 +63,12 @@ public class Main : MonoBehaviour
         wallPrefab = Resources.Load<GameObject>("Prefabs/Wall");
 
         enemyList = new List<LevelEnemy>();
-        enemyList.Add(new LevelEnemy(0, "Nothing", 15));
-        enemyList.Add(new LevelEnemy(1, "Enemy1", 1));
+        enemyList.Add(new LevelEnemy(0, "Nothing", 200));
+        enemyList.Add(new LevelEnemy(1, "EnemyWalk", 5));
+        enemyList.Add(new LevelEnemy(2, "EnemyFly", 7));
+        enemyList.Add(new LevelEnemy(3, "EnemyBox", 1));
+        enemyList.Add(new LevelEnemy(4, "BonusHP", 1));
+        enemyList.Add(new LevelEnemy(5, "BonusGas", 4));
         enemyTotalProbability = 0;
         enemyPrefabs = new List<GameObject>();
         foreach (LevelEnemy obj in enemyList)
@@ -136,7 +140,7 @@ public class Main : MonoBehaviour
                 SpawnObject(line, leftWall + x, obj);
             }
 
-            if (line > 5)
+            if (line > 10)
             {
                 RollEnemy(line, x);
             }
@@ -255,7 +259,11 @@ public class Main : MonoBehaviour
         {
             var enemyRoot = transform.Find("Enemy");
             var o = GameObject.Instantiate(enemyPrefabs[enemy.Id], enemyRoot.transform);
-            o.transform.position = new Vector3(0.5f - ((float)levelWidth / 2) + xpos, 0.5f + line + 1f, 0);
+            var x = 0.5f - ((float)levelWidth / 2) + xpos;
+            x += (Random.value - 0.5f) * 0.2f;
+            var y = line + 1.5f;
+            if (enemy.Prefab == "BonusHP" || enemy.Prefab == "BonusGas") y -= 0.5f;
+            o.transform.position = new Vector3(x, y, 0);
         }
     }
 
@@ -266,5 +274,8 @@ public class Main : MonoBehaviour
 
         var gas = canvas.transform.Find("Gas");
         gas.GetComponent<Text>().text = string.Format("Gas {0}/20", player.GetComponent<Player>().GetGas());
+
+        var floor = canvas.transform.Find("Floor");
+        floor.GetComponent<Text>().text = string.Format("Floor {0}", Mathf.FloorToInt(player.transform.position.y / 10));
     }
 }

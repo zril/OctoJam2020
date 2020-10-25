@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float speed;
-    public float basejumpspeed;
-    public float holdjumpfactor;
+    private float speed = 2;
+    private float basejumpspeed = 6;
+    private float holdjumpfactor = 4.5f;
 
     private float hp = 100;
     private float maxHp = 100;
     private float gas = 20;
     private int maxGas = 20;
-    private float toxicDps = 1;
+    private float toxicDps = 2.5f;
     private float gasPerSec = 1;
 
     private bool left = false;
@@ -46,6 +46,8 @@ public class Player : MonoBehaviour
     private GameObject currentSickle;
     private List<GameObject> grapleObj;
     private GameObject graplePrefab;
+    private GameObject gun;
+    private GameObject hammer;
 
 
     // Start is called before the first frame update
@@ -53,6 +55,8 @@ public class Player : MonoBehaviour
     {
         sicklePrefab = Resources.Load<GameObject>("Prefabs/Sickle");
         graplePrefab = Resources.Load<GameObject>("Prefabs/Graple");
+        gun = transform.Find("Gun").gameObject;
+        hammer = transform.Find("Hammer").gameObject;
 
         grapleObj = new List<GameObject>();
     }
@@ -120,10 +124,10 @@ public class Player : MonoBehaviour
         {
             if (damageTaken.transform.position.x > transform.position.x)
             {
-                rigidbody.velocity = new Vector2(vel.x - 4, vel.y + 1);
+                rigidbody.velocity = new Vector2(vel.x - 3, vel.y + 1);
             } else
             {
-                rigidbody.velocity = new Vector2(vel.x + 4, vel.y + 1);
+                rigidbody.velocity = new Vector2(vel.x + 3, vel.y + 1);
             }
             
             damageTaken = null;
@@ -173,6 +177,18 @@ public class Player : MonoBehaviour
         Vector3 mousepos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousepos.z = 0;
 
+        var angle = Mathf.Atan2(mousepos.y - transform.position.y, mousepos.x - transform.position.x) * Mathf.Rad2Deg;
+        if (mousepos.x - transform.position.x > 0 && grapleTimer <= 0)
+        {
+            gun.GetComponent<SpriteRenderer>().flipX = false;
+            gun.transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
+        if (mousepos.x - transform.position.x < 0 && grapleTimer <= 0)
+        {
+            gun.GetComponent<SpriteRenderer>().flipX = true;
+            gun.transform.rotation = Quaternion.Euler(0, 0, angle + 180);
+        }
+
         if (sickleCooldownTimer > 0)
         {
             sickleCooldownTimer -= Time.deltaTime;
@@ -182,8 +198,6 @@ public class Player : MonoBehaviour
         {
             var sickle = GameObject.Instantiate(sicklePrefab);
             sickle.gameObject.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-
-            var angle = Mathf.Atan2(mousepos.y - transform.position.y, mousepos.x - transform.position.x) * Mathf.Rad2Deg;
             sickle.GetComponent<Sickle>().Direction = angle;
 
             sickleCooldownTimer = sickleCooldown;
@@ -192,7 +206,7 @@ public class Player : MonoBehaviour
         }
         if (Input.GetButtonUp("Sickle"))
         {
-            if (currentSickle != null && grapleTimer <= 0 && currentSickle.GetComponent<Sickle>().GetStick())
+            if (currentSickle != null && grapleTimer <= 0 && currentSickle.GetComponent<Sickle>().GetStick() && (transform.position - currentSickle.transform.position).magnitude > 3)
             {
                 grapleTimer = grapleDuration;
             }
@@ -206,11 +220,12 @@ public class Player : MonoBehaviour
             if (count > 1)
             {
                 var remaining = grapleTimer / grapleDuration;
-                if (count > 20f * remaining)
+                while (count > 20f * remaining)
                 {
                     transform.position = grapleObj[0].transform.position;
                     Destroy(grapleObj[0]);
                     grapleObj.RemoveAt(0);
+                    count--;
                 }
             } else
             {
@@ -228,25 +243,42 @@ public class Player : MonoBehaviour
         {
             transform.Find("HammerHitbox").transform.localPosition = Vector3.right;
             GetComponent<SpriteRenderer>().flipX = false;
+            hammer.GetComponent<SpriteRenderer>().flipX = false;
+            hammer.transform.localPosition = new Vector3(1, 0, 0);
         }
         if (mousepos.x - transform.position.x < 0)
         {
             transform.Find("HammerHitbox").transform.localPosition = Vector3.left;
             GetComponent<SpriteRenderer>().flipX = true;
+            hammer.GetComponent<SpriteRenderer>().flipX = true;
+            hammer.transform.localPosition = new Vector3(-1, 0, 0);
         }
 
         if (Input.GetButtonDown("Hammer") && hammerTimer <= 0 && damageTimer <= 0)
         {
             hammerTimer = hammerCooldown;
             transform.Find("HammerHitbox").gameObject.SetActive(true);
+            hammer.gameObject.SetActive(true);
         }
 
         if (hammerTimer > 0)
         {
             hammerTimer -= Time.deltaTime;
+            var time = (hammerCooldown - hammerTimer) / hammerDuration;
+            if (mousepos.x - transform.position.x > 0)
+            {
+                hammer.transform.rotation = Quaternion.Euler(0, 0, 50 - 100 * time);
+            } else
+            {
+                hammer.transform.rotation = Quaternion.Euler(0, 0, -50 + 100 * time);
+            }
+
+            Debug.Log(time);
+
             if (hammerTimer < hammerCooldown - hammerDuration)
             {
                 transform.Find("HammerHitbox").gameObject.SetActive(false);
+                hammer.gameObject.SetActive(false);
             }
         }
 
@@ -255,6 +287,7 @@ public class Player : MonoBehaviour
         {
             Damage(Time.deltaTime * toxicDps);
             gas += Time.deltaTime * gasPerSec;
+            if (gas > maxGas) gas = maxGas;
         }
     }
 
@@ -315,10 +348,30 @@ public class Player : MonoBehaviour
         {
             toxic++;
         }
+
+        if (collision.gameObject.CompareTag("DeathCloud"))
+        {
+            Damage(100);
+        }
+
         if (collision.gameObject.CompareTag("Enemy"))
         {
             damageTaken = collision.gameObject;
             Damage(5);
+        }
+
+        if (collision.gameObject.CompareTag("BonusHP"))
+        {
+            hp += 3;
+            if (hp > maxHp) hp = maxHp;
+            Destroy(collision.gameObject, 0.15f);
+        }
+
+        if (collision.gameObject.CompareTag("BonusGas"))
+        {
+            gas += 2;
+            if (gas > maxGas) gas = maxGas;
+            Destroy(collision.gameObject, 0.15f);
         }
     }
 
@@ -329,10 +382,6 @@ public class Player : MonoBehaviour
             toxic--;
         }
 
-        if (collision.gameObject.CompareTag("DeathCloud"))
-        {
-            Damage(100);
-        }
     }
 
     private void Damage(float damage)
